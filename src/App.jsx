@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
 // ─── PASSWORD GATE ───────────────────────────────────────────────────
-const APP_PASSWORD = "omnisolve2025!"; // ← change this to whatever you want
+const APP_PASSWORD = "omnisolve2025"; // ← change this to whatever you want
 
 function PasswordGate({ onUnlock }) {
   const [input, setInput] = useState("");
