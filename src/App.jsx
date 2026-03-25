@@ -1,5 +1,60 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 
+// ─── PASSWORD GATE ───────────────────────────────────────────────────
+const APP_PASSWORD = "omnisolve2025!"; // ← change this to whatever you want
+
+function PasswordGate({ onUnlock }) {
+  const [input, setInput] = useState("");
+  const [error, setError] = useState(false);
+  const [show,  setShow]  = useState(false);
+
+  const tryUnlock = () => {
+    if (input === APP_PASSWORD) {
+      localStorage.setItem("omni-auth", APP_PASSWORD);
+      onUnlock();
+    } else {
+      setError(true);
+      setTimeout(() => setError(false), 2000);
+    }
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#F8F9FB", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Plus Jakarta Sans', system-ui, sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+      <div style={{ background:"#fff", border:"1px solid #DDE3ED", borderRadius:16, padding:"40px 36px", width:"100%", maxWidth:400, textAlign:"center", boxShadow:"0 4px 24px rgba(0,0,0,.06)" }}>
+        <div style={{ width:48, height:48, borderRadius:12, background:"#2563EB", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect x="1" y="1" width="9" height="9" rx="2" fill="white"/>
+            <rect x="12" y="1" width="9" height="9" rx="2" fill="white" opacity=".4"/>
+            <rect x="1" y="12" width="9" height="9" rx="2" fill="white" opacity=".4"/>
+            <rect x="12" y="12" width="9" height="9" rx="2" fill="white"/>
+          </svg>
+        </div>
+        <div style={{ fontSize:20, fontWeight:700, color:"#111827", marginBottom:6, letterSpacing:"-.3px" }}>OmniSolve Systems</div>
+        <div style={{ fontSize:14, color:"#6B7280", marginBottom:28 }}>Prospect Pipeline — Private Access</div>
+        <div style={{ position:"relative", marginBottom:12 }}>
+          <input
+            type={show ? "text" : "password"}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && tryUnlock()}
+            placeholder="Enter password"
+            style={{ width:"100%", fontFamily:"inherit", fontSize:14, padding:"11px 44px 11px 14px", borderRadius:8, border:`1.5px solid ${error ? "#FCA5A5" : "#DDE3ED"}`, background:error ? "#FFF1F1" : "#F8F9FB", color:"#111827", outline:"none", boxSizing:"border-box", transition:"border .15s" }}
+          />
+          <button onClick={() => setShow(p => !p)} style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", color:"#9CA3AF", fontSize:13, fontFamily:"inherit" }}>
+            {show ? "Hide" : "Show"}
+          </button>
+        </div>
+        {error && <div style={{ fontSize:12, color:"#B91C1C", marginBottom:10, fontWeight:500 }}>Incorrect password — try again</div>}
+        <button onClick={tryUnlock} style={{ width:"100%", fontFamily:"inherit", fontSize:14, fontWeight:600, padding:"11px", borderRadius:8, border:"none", background:"#2563EB", color:"#fff", cursor:"pointer" }}>
+          Unlock
+        </button>
+        <div style={{ fontSize:11, color:"#9CA3AF", marginTop:16 }}>Private tool — authorized access only</div>
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────
 // WHITE-LABEL TOKENS — change only this block to rebrand
 // ─────────────────────────────────────────────────────────────────────
@@ -55,8 +110,8 @@ function dataServiceForIndustry(lead) {
   if (/education|school|isd|university/.test(ind))  return { svc:"dashboard", why:"Districts sit on student and performance data with no visibility. A dashboard demo is a fast trust-builder." };
   if (/retail|restaurant|food|liquor|store/.test(ind)) return { svc:"etl", why:"Multi-location retail has fragmented POS and inventory data. ETL pipelines deliver immediate operational value." };
   if (/energy|oil|construction|manufacturing/.test(ind)) return { svc:"etl", why:"Ops-heavy businesses have siloed data across ERP, logistics, and equipment. ETL connects them." };
-  if (lead.techStack >= 4)   return { svc:"dba",       why:"Strong tech stack signals existing databases. A DBA audit finds optimization wins fast." };
-  if (lead.dataSignals >= 4) return { svc:"cleaning",  why:"High data volume signals messy records. A free cleaning sample proves value before any commitment." };
+  if (lead.techStack >= 4)   return { svc:"dba",      why:"Strong tech stack signals existing databases. A DBA audit finds optimization wins fast." };
+  if (lead.dataSignals >= 4) return { svc:"cleaning", why:"High data volume signals messy records. A free cleaning sample proves value before any commitment." };
   return { svc:"dashboard", why:"Dashboards create fast perceived ROI and are easy to demo. Ideal first deliverable to establish trust." };
 }
 
@@ -124,10 +179,10 @@ function calcScore(l) {
   ));
 }
 function grade(s) {
-  if (s >= 82) return { label:"A", color:C.green,  bg:C.greenBg  };
-  if (s >= 66) return { label:"B", color:BRAND.primary, bg:BRAND.bg };
-  if (s >= 50) return { label:"C", color:C.amber,  bg:C.amberBg  };
-  return              { label:"D", color:C.red,    bg:C.redBg    };
+  if (s >= 82) return { label:"A", color:C.green,        bg:C.greenBg  };
+  if (s >= 66) return { label:"B", color:BRAND.primary,  bg:BRAND.bg   };
+  if (s >= 50) return { label:"C", color:C.amber,        bg:C.amberBg  };
+  return              { label:"D", color:C.red,          bg:C.redBg    };
 }
 
 // ─── SEED DATA ────────────────────────────────────────────────────────
@@ -168,14 +223,13 @@ const TIER_BORDERS = {
   "RETAINER":  C.purpleBdr,
 };
 const TIER_ACTIVE = {
-  lead: { border:C.greenBdr,     bg:C.greenBg,   color:C.green       },
-  up:   { border:BRAND.border,   bg:BRAND.bg,    color:BRAND.primary },
-  ret:  { border:C.purpleBdr,    bg:C.purpleBg,  color:C.purple      },
+  lead: { border:C.greenBdr,   bg:C.greenBg,   color:C.green       },
+  up:   { border:BRAND.border, bg:BRAND.bg,    color:BRAND.primary },
+  ret:  { border:C.purpleBdr,  bg:C.purpleBg,  color:C.purple      },
 };
 
 const STORAGE_KEY = "omnisolve-v7";
 
-// ─── HELPERS ─────────────────────────────────────────────────────────
 const webPill = (val) => {
   const o = WEB_OPTS.find(x => x.val === val);
   return { bg:o.bgColor, color:o.txtColor, border:`1px solid ${o.bdrColor}`, label:o.label };
@@ -193,7 +247,7 @@ function SignalRow({ label, color, value, onChange }) {
           <button key={v} onClick={() => onChange(v)} style={{
             width:28, height:28, borderRadius:5, cursor:"pointer", fontFamily:mono, fontWeight:600, fontSize:11,
             display:"flex", alignItems:"center", justifyContent:"center",
-            border: `1.5px solid ${value >= v ? color : C.border}`,
+            border:`1.5px solid ${value >= v ? color : C.border}`,
             background: value >= v ? color+"18" : C.surface2,
             color: value >= v ? color : C.ink3, transition:"all .12s",
           }}>{v}</button>
@@ -203,8 +257,13 @@ function SignalRow({ label, color, value, onChange }) {
   );
 }
 
-// ─── APP ──────────────────────────────────────────────────────────────
+// ─── MAIN APP ─────────────────────────────────────────────────────────
 export default function App() {
+  const [unlocked, setUnlocked] = useState(
+    () => localStorage.getItem("omni-auth") === APP_PASSWORD
+  );
+  if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />;
+
   const [leads,     setLeads]     = useState(() => { try { const x = localStorage.getItem(STORAGE_KEY); return x ? JSON.parse(x) : SEED; } catch { return SEED; } });
   const [selId,     setSelId]     = useState(null);
   const [tab,       setTab]       = useState("pipeline");
@@ -242,7 +301,6 @@ export default function App() {
     won:   scored.filter(l => l.status === "won").length,
   };
 
-  // ── Live search ───────────────────────────────────────────────────
   const runSearch = useCallback(async () => {
     if (!apiKey.trim()) { setSearchErr("Add your Google Places API key first."); return; }
     if (!searchQ.trim()) { setSearchErr("Enter a search query."); return; }
@@ -287,7 +345,6 @@ export default function App() {
     setCsvRaw(""); setTab("pipeline");
   };
 
-  // ── Shared styles ─────────────────────────────────────────────────
   const fieldInput = { fontFamily:sans, fontSize:14, background:C.surface, border:`1.5px solid ${C.border}`, borderRadius:6, padding:"10px 13px", color:C.ink, outline:"none", width:"100%", boxSizing:"border-box" };
   const btnPrimary = { fontFamily:sans, fontSize:14, fontWeight:600, cursor:"pointer", borderRadius:6, padding:"11px 26px", border:"none", background:BRAND.primary, color:"#fff" };
   const btnGhost   = { fontFamily:sans, fontSize:14, fontWeight:500, cursor:"pointer", borderRadius:6, padding:"11px 26px", border:`1.5px solid ${C.border}`, background:"transparent", color:C.ink2 };
@@ -298,7 +355,7 @@ export default function App() {
     <div style={{ fontFamily:sans, background:C.page, minHeight:"100vh", color:C.ink, fontSize:14 }}>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <header style={{ height:60, background:C.surface, borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 24px", gap:16, position:"sticky", top:0, zIndex:20 }}>
         <div style={{ display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
           <div style={{ width:36, height:36, borderRadius:9, background:BRAND.primary, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -314,7 +371,6 @@ export default function App() {
             <div style={{ fontSize:12, color:C.ink3, marginTop:1 }}>{BRAND.sub}</div>
           </div>
         </div>
-
         <nav style={{ display:"flex", gap:2, background:C.surface2, borderRadius:9, padding:4 }}>
           {[["pipeline","Pipeline"],["live","Live search"],["add","Add lead"],["import","CSV import"]].map(([t,l]) => (
             <button key={t} onClick={() => setTab(t)} style={{ fontFamily:sans, fontSize:13, fontWeight:tab===t?600:500, cursor:"pointer", borderRadius:7, padding:"7px 16px", border:"none", background:tab===t?C.surface:"transparent", color:tab===t?BRAND.primary:C.ink3, boxShadow:tab===t?"0 1px 4px rgba(0,0,0,.09)":"none", transition:"all .15s" }}>
@@ -323,13 +379,12 @@ export default function App() {
             </button>
           ))}
         </nav>
-
         <div style={{ display:"flex", gap:8, flexShrink:0 }}>
           {[
-            [stats.total, "Leads",      C.ink,         C.surface,  C.border      ],
-            [stats.hot,   "Hot leads",  BRAND.primary, BRAND.bg,   BRAND.border  ],
-            [stats.noWeb, "No website", C.amber,       C.amberBg,  C.amberBdr    ],
-            [stats.won,   "Won",        C.green,       C.greenBg,  C.greenBdr    ],
+            [stats.total, "Leads",      C.ink,        C.surface,  C.border     ],
+            [stats.hot,   "Hot leads",  BRAND.primary, BRAND.bg,  BRAND.border ],
+            [stats.noWeb, "No website", C.amber,       C.amberBg, C.amberBdr   ],
+            [stats.won,   "Won",        C.green,       C.greenBg, C.greenBdr   ],
           ].map(([v,l,col,bg,bdr]) => (
             <div key={l} style={{ padding:"7px 16px", borderRadius:8, textAlign:"center", border:`1px solid ${bdr}`, background:bg, minWidth:72 }}>
               <div style={{ fontFamily:mono, fontSize:20, fontWeight:700, color:col, lineHeight:1 }}>{v}</div>
@@ -339,7 +394,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── LIVE SEARCH ── */}
+      {/* LIVE SEARCH */}
       {tab === "live" && (
         <div style={{ maxWidth:860, margin:"0 auto", padding:"32px 28px" }}>
           <h2 style={{ fontSize:20, fontWeight:700, color:C.ink, marginBottom:6, letterSpacing:"-.4px" }}>Live business search</h2>
@@ -348,7 +403,6 @@ export default function App() {
             <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" style={{ color:BRAND.primary, textDecoration:"none" }}>console.cloud.google.com</a>.
             Free $200/mo credit covers ~5,000 searches.
           </p>
-
           <div style={{ ...secCard, marginBottom:20 }}>
             <div style={secLabel}>Google Places API key</div>
             <div style={{ display:"flex", gap:12, alignItems:"center" }}>
@@ -360,7 +414,6 @@ export default function App() {
             </div>
             <div style={{ fontSize:12, color:C.ink4, marginTop:8 }}>Saved locally in your browser only. Never transmitted.</div>
           </div>
-
           <div style={{ display:"flex", gap:10, marginBottom:12 }}>
             <input value={searchQ} onChange={e => setSearchQ(e.target.value)} onKeyDown={e => e.key==="Enter" && runSearch()}
               placeholder={`"medical clinic Forney TX"  or  "accounting firm 75126"`}
@@ -369,21 +422,17 @@ export default function App() {
               {searching ? "Searching…" : "Search"}
             </button>
           </div>
-
           <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:22 }}>
             {["medical clinic Forney TX","accounting firm Forney TX","dental office 75126","law firm Kaufman TX","construction Forney TX","school Kaufman County TX"].map(q => (
               <button key={q} onClick={() => setSearchQ(q)} style={{ fontFamily:sans, fontSize:12, background:C.surface, border:`1.5px solid ${C.border}`, borderRadius:6, padding:"5px 12px", color:C.ink3, cursor:"pointer" }}>{q}</button>
             ))}
           </div>
-
           {searchErr && <div style={{ background:C.redBg, border:`1.5px solid ${C.redBdr}`, borderRadius:8, padding:"12px 16px", fontSize:13, color:C.red, marginBottom:16 }}>{searchErr}</div>}
-
           {results.length > 0 && (
             <>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                 <span style={{ fontSize:14, color:C.ink3, fontWeight:500 }}>{results.length} results found</span>
-                <button onClick={() => { results.forEach(r => add({...r,_id:undefined})); setResults([]); setTab("pipeline"); }}
-                  style={{ ...btnPrimary, background:C.green, padding:"8px 20px", fontSize:13 }}>Import all ({results.length})</button>
+                <button onClick={() => { results.forEach(r => add({...r,_id:undefined})); setResults([]); setTab("pipeline"); }} style={{ ...btnPrimary, background:C.green, padding:"8px 20px", fontSize:13 }}>Import all ({results.length})</button>
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                 {results.map(r => {
@@ -396,11 +445,10 @@ export default function App() {
                         <div style={{ fontSize:12, color:C.ink3, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.address}</div>
                         {r.phone && <div style={{ fontSize:12, color:C.ink3, marginTop:1 }}>{r.phone}</div>}
                       </div>
-                      <span style={{ fontSize:11, fontWeight:600, borderRadius:5, padding:"3px 9px", border:`1px solid ${wp.border.replace("1px solid ","")}`, background:wp.bg, color:wp.color, flexShrink:0 }}>{wp.label}</span>
+                      <span style={{ fontSize:11, fontWeight:600, borderRadius:5, padding:"3px 9px", background:wp.bg, color:wp.color, border:wp.border, flexShrink:0 }}>{wp.label}</span>
                       {r.rating > 0 && <span style={{ fontSize:13, color:C.amber, fontWeight:600, flexShrink:0 }}>★ {r.rating}</span>}
                       <span style={{ fontFamily:mono, fontSize:18, fontWeight:700, color:g.color, minWidth:34, textAlign:"right", flexShrink:0 }}>{calcScore(r)}</span>
-                      <button onClick={() => { add({...r,_id:undefined}); setResults(p => p.filter(x => x._id !== r._id)); }}
-                        style={{ fontFamily:sans, fontSize:12, fontWeight:600, cursor:"pointer", borderRadius:6, padding:"7px 14px", border:`1.5px solid ${BRAND.border}`, background:BRAND.bg, color:BRAND.primary, flexShrink:0 }}>+ Add</button>
+                      <button onClick={() => { add({...r,_id:undefined}); setResults(p => p.filter(x => x._id !== r._id)); }} style={{ fontFamily:sans, fontSize:12, fontWeight:600, cursor:"pointer", borderRadius:6, padding:"7px 14px", border:`1.5px solid ${BRAND.border}`, background:BRAND.bg, color:BRAND.primary, flexShrink:0 }}>+ Add</button>
                     </div>
                   );
                 })}
@@ -413,7 +461,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ── ADD LEAD ── */}
+      {/* ADD LEAD */}
       {tab === "add" && (
         <div style={{ maxWidth:660, margin:"0 auto", padding:"32px 28px" }}>
           <h2 style={{ fontSize:20, fontWeight:700, color:C.ink, marginBottom:24, letterSpacing:"-.4px" }}>Add lead manually</h2>
@@ -425,7 +473,6 @@ export default function App() {
               </div>
             ))}
           </div>
-
           <div style={{ marginBottom:18 }}>
             <label style={{ display:"block", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:".6px", color:C.ink3, marginBottom:7 }}>Website presence</label>
             <div style={{ display:"flex", gap:8 }}>
@@ -440,7 +487,6 @@ export default function App() {
               })}
             </div>
           </div>
-
           <div style={{ display:"grid", gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)", gap:16, marginBottom:18 }}>
             {SIGNALS.map(sig => (
               <div key={sig.k}>
@@ -461,11 +507,9 @@ export default function App() {
               </div>
             </div>
           </div>
-
           <div style={{ marginBottom:20 }}>
             <label style={{ display:"block", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:".6px", color:C.ink3, marginBottom:7 }}>Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(p=>({...p,notes:e.target.value}))} rows={3} placeholder="Pain points, context, key contacts…"
-              style={{ ...fieldInput, resize:"none", lineHeight:1.65 }}/>
+            <textarea value={form.notes} onChange={e => setForm(p=>({...p,notes:e.target.value}))} rows={3} placeholder="Pain points, context, key contacts…" style={{ ...fieldInput, resize:"none", lineHeight:1.65 }}/>
           </div>
           <div style={{ display:"flex", gap:10 }}>
             <button onClick={() => { add(form); setForm(blankForm); setTab("pipeline"); }} style={btnPrimary}>Add to pipeline</button>
@@ -474,12 +518,12 @@ export default function App() {
         </div>
       )}
 
-      {/* ── CSV IMPORT ── */}
+      {/* CSV IMPORT */}
       {tab === "import" && (
         <div style={{ maxWidth:740, margin:"0 auto", padding:"32px 28px" }}>
           <h2 style={{ fontSize:20, fontWeight:700, color:C.ink, marginBottom:6, letterSpacing:"-.4px" }}>Import from CSV</h2>
           <p style={{ fontSize:14, color:C.ink3, lineHeight:1.7, marginBottom:28 }}>
-            Export from <strong style={{ color:C.ink }}>Outscraper</strong> (free 500 records/month at outscraper.com) and paste below. Column names are auto-detected from the header row.
+            Export from <strong style={{ color:C.ink }}>Outscraper</strong> (free 500 records/month at outscraper.com) and paste below. Column names are auto-detected.
           </p>
           <label style={{ display:"block", fontSize:12, fontWeight:600, textTransform:"uppercase", letterSpacing:".6px", color:C.ink3, marginBottom:7 }}>CSV data</label>
           <textarea value={csvRaw} onChange={e => setCsvRaw(e.target.value)} rows={12}
@@ -492,12 +536,10 @@ export default function App() {
         </div>
       )}
 
-      {/* ── PIPELINE ── */}
+      {/* PIPELINE */}
       {tab === "pipeline" && (
         <div style={{ display:"flex", height:"calc(100vh - 60px)" }}>
-
-          {/* LIST */}
-          <div style={{ width:sel?"45%":"100%", transition:"width .2s", overflowY:"auto", borderRight:`1px solid ${C.border}`, background:C.page }}>
+          <div style={{ width:sel?"44%":"100%", transition:"width .2s", overflowY:"auto", borderRight:`1px solid ${C.border}`, background:C.page }}>
             <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", gap:10, alignItems:"center", background:C.surface, position:"sticky", top:0, zIndex:10 }}>
               <input placeholder="Search by name, address, or industry…" value={search} onChange={e => setSearch(e.target.value)}
                 style={{ fontFamily:sans, fontSize:13, background:C.surface2, border:`1.5px solid ${C.border}`, borderRadius:6, padding:"8px 12px", color:C.ink, outline:"none", flex:1 }}/>
@@ -508,14 +550,13 @@ export default function App() {
               </select>
               <span style={{ fontFamily:mono, fontSize:12, color:C.ink4, flexShrink:0 }}>{visible.length} leads</span>
             </div>
-
             <div style={{ padding:12, display:"flex", flexDirection:"column", gap:6 }}>
               {visible.length === 0 && <div style={{ textAlign:"center", padding:"56px 24px", color:C.ink4, fontSize:14 }}>No leads match your filter.</div>}
               {visible.map((l, i) => {
-                const g     = grade(l.score);
+                const g = grade(l.score);
                 const isAct = sel?.id === l.id;
-                const plan  = buildPitchPlan(l);
-                const wp    = webPill(l.hasWebsite);
+                const plan = buildPitchPlan(l);
+                const wp = webPill(l.hasWebsite);
                 const stripBdr = TIER_BORDERS[plan[0].tier];
                 return (
                   <div key={l.id} onClick={() => { setSelId(isAct ? null : l.id); setPitchTab(0); }}
@@ -527,7 +568,7 @@ export default function App() {
                         <div style={{ fontSize:14, fontWeight:600, color:C.ink, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{l.name}</div>
                         <div style={{ fontSize:12, color:C.ink3, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{l.industry ? `${l.industry} · ` : ""}{l.address || l.city}</div>
                       </div>
-                      <span style={{ fontSize:11, fontWeight:600, borderRadius:5, padding:"3px 9px", background:wp.bg, color:wp.color, border:`1px solid ${wp.border.replace("1px solid ","")}`, flexShrink:0 }}>{wp.label}</span>
+                      <span style={{ fontSize:11, fontWeight:600, borderRadius:5, padding:"3px 9px", background:wp.bg, color:wp.color, border:wp.border, flexShrink:0 }}>{wp.label}</span>
                       <span style={{ fontFamily:mono, fontSize:18, fontWeight:700, color:g.color, width:34, textAlign:"right", flexShrink:0 }}>{l.score}</span>
                       <div style={{ width:8, height:8, borderRadius:"50%", background:STATUSES[l.status]?.dot||C.ink4, flexShrink:0 }}/>
                     </div>
@@ -549,9 +590,8 @@ export default function App() {
             const g = grade(sel.score);
             const selWo = WEB_OPTS.find(o => o.val === sel.hasWebsite);
             return (
-              <div style={{ width:"55%", overflowY:"auto", background:C.surface }}>
+              <div style={{ width:"56%", overflowY:"auto", background:C.surface }}>
                 <div style={{ padding:"24px 26px" }}>
-                  {/* Head */}
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22, gap:16 }}>
                     <div style={{ minWidth:0 }}>
                       <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:BRAND.primary, color:"#fff", fontSize:11, fontWeight:700, letterSpacing:".5px", padding:"4px 10px", borderRadius:5, marginBottom:10 }}>
@@ -578,7 +618,6 @@ export default function App() {
                     <button onClick={() => setSelId(null)} style={{ ...btnGhost, padding:"7px 14px", fontSize:13, flexShrink:0 }}>✕ Close</button>
                   </div>
 
-                  {/* Approach strategy */}
                   <div style={secCard}>
                     <div style={secLabel}>Approach strategy</div>
                     <div style={{ display:"flex", gap:8, marginBottom:14 }}>
@@ -607,7 +646,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Pipeline status */}
                   <div style={secCard}>
                     <div style={secLabel}>Pipeline status</div>
                     <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14 }}>
@@ -628,12 +666,8 @@ export default function App() {
                     </label>
                   </div>
 
-                  {/* Website + signals */}
                   <div style={secCard}>
-                    <div style={secLabel}>
-                      Website presence{" "}
-                      <span style={{ textTransform:"none", letterSpacing:0, fontSize:11, fontWeight:400, color:C.ink4 }}>— updates pitch strategy above</span>
-                    </div>
+                    <div style={secLabel}>Website presence <span style={{ textTransform:"none", letterSpacing:0, fontSize:11, fontWeight:400, color:C.ink4 }}>— updates pitch strategy above</span></div>
                     <div style={{ display:"flex", gap:8, marginBottom:18 }}>
                       {WEB_OPTS.map(o => {
                         const active = sel.hasWebsite === o.val;
@@ -656,7 +690,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Notes */}
                   <div style={secCard}>
                     <div style={secLabel}>Notes</div>
                     <textarea value={sel.notes} onChange={e => upd(sel.id,{notes:e.target.value})} rows={4}
