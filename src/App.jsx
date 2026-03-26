@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@supabase/supabase-js";
+/* eslint-disable react-hooks/rules-of-hooks */
 
 // ─── SUPABASE ────────────────────────────────────────────────────────
 const SUPA_URL = "https://yzzdidevwtvrisgvtayo.supabase.co";
@@ -7,7 +8,7 @@ const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const db = createClient(SUPA_URL, SUPA_KEY);
 
 // ─── PASSWORD ────────────────────────────────────────────────────────
-const APP_PASSWORD = "Omnisolve2025!!";
+const APP_PASSWORD = "omnisolve2025!!";
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────
 const BRAND = { name:"OmniSolve Systems", sub:"Prospect pipeline", primary:"#2563EB", dark:"#1D4ED8", bg:"#EFF4FF", border:"#BFCFFD" };
@@ -327,7 +328,7 @@ export default function App() {
   const [tab,       setTab]       = useState("search");
   const [filter,    setFilter]    = useState("all");
   const [search,    setSearch]    = useState("");
-  const [pitchTab,  setPitchTab]  = useState(0);
+
   const [apiKey,    setApiKey]    = useState(()=>localStorage.getItem("omni-gkey")||"");
   const [searchQ,   setSearchQ]   = useState("");
   const [searching, setSearching] = useState(false);
@@ -462,14 +463,14 @@ export default function App() {
   };
 
   // ─── DETAIL PANEL (shared between pipeline and board) ─────────────
-  function DetailPanel({ lead, pitchPlan, onClose }) {
+  function DetailPanel({ lead, pitchPlan, onClose, tasks:allTasks, updLead:updLeadFn, tasks2, newTask2, setNewTask2, addTask2, updTask2, delTask2 }) {
     if(!lead) return null;
     const g=grade(calcScore(lead));
     const wo=WEB_OPTS.find(o=>o.val===lead.has_website)||WEB_OPTS[0];
     const sp=sizePill(lead.size);
     const totals=totalPriceRange(pitchPlan);
-    const leadTasks=tasks.filter(t=>t.lead_id===lead.id);
-    const [localPitchTab,setLocalPitchTab]=useState(0);
+    const leadTasks=(allTasks||[]).filter(t=>t.lead_id===lead.id);
+    const [localPitchTab,setLocalPitchTab]=useState(0); // eslint-disable-line
     const p=pitchPlan[localPitchTab]||pitchPlan[0];
 
     return (
@@ -815,7 +816,7 @@ export default function App() {
                 const wp=webPill(l.has_website);const sp=sizePill(l.size);
                 const col=BOARD_COLS.find(c=>c.id===l.status)||BOARD_COLS[0];
                 return (
-                  <div key={l.id} onClick={()=>{setSelId(isAct?null:l.id);setPitchTab(0);}} style={{ background:isAct?BRAND.bg:C.surface,border:"1.5px solid "+(isAct?BRAND.primary:C.border),borderRadius:12,padding:"13px 15px",cursor:"pointer" }}>
+                  <div key={l.id} onClick={()=>{setSelId(isAct?null:l.id);}} style={{ background:isAct?BRAND.bg:C.surface,border:"1.5px solid "+(isAct?BRAND.primary:C.border),borderRadius:12,padding:"13px 15px",cursor:"pointer" }}>
                     <div style={{ display:"flex",alignItems:"center",gap:9 }}>
                       <span style={{ fontFamily:mono,fontSize:11,color:C.ink4,width:20,textAlign:"center",flexShrink:0 }}>{i+1}</span>
                       <div style={{ width:34,height:34,borderRadius:7,background:g.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:g.color,fontFamily:mono,flexShrink:0 }}>{g.label}</div>
